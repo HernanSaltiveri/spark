@@ -23,13 +23,15 @@ import org.apache.spark.sql.catalyst.expressions.{Cast, EqualTo, EvalMode, Liter
 import org.apache.spark.sql.catalyst.types.DataTypeUtils
 import org.apache.spark.sql.internal.connector.PartitionPredicateField
 import org.apache.spark.sql.types.{IntegerType, StringType, StructField}
+import org.apache.spark.tags.DataSourceV2Test
 import org.apache.spark.unsafe.types.UTF8String
 
+@DataSourceV2Test
 class PushDownUtilsSuite extends SparkFunSuite {
 
   test("SPARK-59572: only a runtime partition predicate keeps a key it cannot evaluate") {
     val ref = DataTypeUtils.toAttribute(StructField("p", StringType, nullable = true))
-    val fields = Seq(PartitionPredicateField(Seq("p"), ref))
+    val fields = Seq(PartitionPredicateField(Seq("p"), Some(ref)))
     // An ANSI cast of a non-numeric string throws when evaluated.
     val filter = EqualTo(Cast(ref, IntegerType, None, EvalMode.ANSI), Literal(1))
     val failing = InternalRow(UTF8String.fromString("hr"))
